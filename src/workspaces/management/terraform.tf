@@ -34,8 +34,8 @@ provider "aws" {
 # }
 
 
-variable "AWS_ACCESS_KEY_ID" {}
-variable "AWS_SECRET_ACCESS_KEY" {}
+# variable "aws_access_key_id" {}
+# variable "aws_secret_access_key" {}
 
 variable "env" {
   description = "name of the environment"
