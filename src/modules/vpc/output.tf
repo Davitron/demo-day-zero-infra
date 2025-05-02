@@ -21,3 +21,7 @@ output "database_subnets" {
 output "database_subnet_group" {
   value = module.vpc.database_subnet_group
 }
+
+output "intra_subnet" {
+  value = module.vpc.intra_subnets
+}
