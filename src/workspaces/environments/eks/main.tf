@@ -8,6 +8,10 @@ locals {
       }
     }
   } : {}
+
+  environment_alias = {
+    mgnt = "management"
+  }
 }
 
 

@@ -47,3 +47,8 @@ output "argocd_access_role" {
   description = "IAM role for ArgoCD."
   value       = var.cluster_mode == "workload" ? module.argocd_access_iam[0].iam_role_arn : null
 }
+
+output "cluster_alias" {
+  description = "Alias code for the envirnment."
+  value       = local.envronment_alias[var.env]
+}
