@@ -42,3 +42,8 @@ output "karpenter_iam_role" {
   description = "IAM role for Karpenter."
   value       = module.cluster.karpenter_iam_role
 }
+
+output "argocd_access_role" {
+  description = "IAM role for ArgoCD."
+  value       = var.cluster_mode == "workload" ? module.argocd_access_iam[0].iam_role_arn : null
+}
