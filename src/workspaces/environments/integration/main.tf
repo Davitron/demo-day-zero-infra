@@ -4,7 +4,7 @@ resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argocd"
-  version          = "v7.8.14"
+  version          = "7.8.14"
   replace          = false
   force_update     = false
   timeout          = 600
