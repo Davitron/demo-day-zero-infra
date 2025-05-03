@@ -21,7 +21,7 @@ module "eks" {
 
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
-    instance_types = ["m5i.large"]
+    instance_types = ["m6i.large"]
   }
 
   eks_managed_node_groups = {
