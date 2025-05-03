@@ -1,4 +1,17 @@
-module "management-cluster" {
+locals {
+  access_entry = var.cluster_mode != "management" ? {
+    admin = {
+      principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/argocd-access-role-${var.env}"
+      policy_association = {
+        policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+        access_scope = "cluster"
+      }
+    }
+  } : {}
+}
+
+
+module "cluster" {
   source                                   = "../../../modules/eks"
   env                                      = var.env
   vpc_id                                   = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -6,7 +19,8 @@ module "management-cluster" {
   node_subnets                             = data.terraform_remote_state.vpc.outputs.private_subnets
   control_plane_subnet_ids                 = data.terraform_remote_state.vpc.outputs.intra_subnets
   enable_cluster_creator_admin_permissions = true
-  enable_v1_permissions                    = true 
+  enable_v1_permissions                    = true
+  access_entry = local.access_entry
 
   aws_account_id = "${data.aws_caller_identity.current.account_id}"
 
@@ -46,14 +60,15 @@ resource "aws_iam_policy" "argocd_policy" {
 }
 
 
-module "argocd_iam" {
+module "argocd_management_iam" {
+  count       = var.cluster_mode == "management" ? 1 : 0 
   source      = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version     = "5.34.0"
+  version                    = "~> 5.0"
   create_role = true
-  role_name   = "argocd-role"
+  role_name   = "argocd-management-role-${var.env}"
   oidc_providers = {
     main = {
-      provider_arn = module.control-cluster.oidc_provider_arn
+      provider_arn = module.cluster.oidc_provider_arn
       namespace_service_accounts = [
         "argocd:argocd-role",
         "argocd:argocd-application-controller",
@@ -71,11 +86,28 @@ module "argocd_iam" {
 }
 
 resource "aws_iam_policy_attachment" "argocd_policy_attachment" {
+  count      = var.cluster_mode == "management" ? 1 : 0
   name       = "argocd-policy-attachment"
-  roles      = [module.argocd_iam.iam_role_name]
+  roles      = [module.argocd_management_iam[0].iam_role_name]
   policy_arn = aws_iam_policy.argocd_policy.arn
 
 }
+
+module "argocd_access_iam" {
+  count       = var.cluster_mode == "workload" ? 1 : 0
+  source      = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version     = "5.34.0"
+  create_role = true
+  role_name   = "argocd-access-role-${var.env}"
+  trusted_role_arns = [
+    module.argocd_management_iam[0].iam_role_arn,
+  ]
+
+  create_instance_profile = false
+  role_requires_mfa       = false
+  attach_admin_policy     = false
+}
+
 
 module "crossplane_iam" {
   source                     = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -85,7 +117,7 @@ module "crossplane_iam" {
   assume_role_condition_test = "StringLike"
   oidc_providers = {
     main = {
-      provider_arn               = module.control-cluster.oidc_provider_arn
+      provider_arn               = module.cluster.oidc_provider_arn
       namespace_service_accounts = ["crossplane:*"]
     }
   }

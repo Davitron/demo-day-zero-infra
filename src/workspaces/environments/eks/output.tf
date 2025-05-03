@@ -1,21 +1,21 @@
 output "cluster_id" {
-  value = module.control-cluster.cluster_id
+  value = module.cluster.cluster_id
 }
 
 output "cluster_name" {
-  value = module.control-cluster.cluster_name
+  value = module.cluster.cluster_name
 }
 
 output "cluster_oidc_url" {
-  value = module.control-cluster.cluster_oidc_url
+  value = module.cluster.cluster_oidc_url
 }
 
 output "oidc_provider_arn" {
-  value = module.control-cluster.oidc_provider_arn
+  value = module.cluster.oidc_provider_arn
 }
 
 # # output "cluster_endpoint" {
-# #   value = module.control-cluster.cluster_endpoint
+# #   value = module.cluster.cluster_endpoint
 # # }
 
 # output "cluster_certificate" {
@@ -25,7 +25,7 @@ output "oidc_provider_arn" {
 
 output "cluster_endpoint" {
   description = "Endpoint for EKS control plane."
-  value       = module.control-cluster.cluster_endpoint
+  value       = module.cluster.cluster_endpoint
 }
 
 # output "cluster_token" {
@@ -35,5 +35,5 @@ output "cluster_endpoint" {
 
 output "karpenter_iam_role" {
   description = "IAM role for Karpenter."
-  value       = module.control-cluster.karpenter_iam_role
+  value       = module.cluster.karpenter_iam_role
 }

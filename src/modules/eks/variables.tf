@@ -93,12 +93,8 @@ variable "instance_type" {
   default     = "m5.large"
 }
 
-variable "cluster_mode" {
-  description = "Mode of the cluster either a management cluster or a workload cluster"
-  type        = string
-  validation {
-    condition     = contains(["management", "workload"], var.cluster_mode)
-    error_message = "cluster_mode must be either 'management' or 'workload'."
-  }
-  default = "management"
+variable "access_entry" {
+  description = "Access entry for the cluster"
+  type        = map(any)
+  default     = {}
 }

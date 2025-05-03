@@ -18,6 +18,11 @@ terraform {
       version = ">= 0.9"
     }
 
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.11.0"
+    }
+
     doppler = {
       source  = "DopplerHQ/doppler"
       version = ">= 1.6.1"
