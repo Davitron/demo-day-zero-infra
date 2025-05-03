@@ -18,14 +18,19 @@ output "oidc_provider_arn" {
 # #   value = module.cluster.cluster_endpoint
 # # }
 
-# output "cluster_certificate" {
-#   description = "Certificate for EKS control plane."
-#   value       = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-# }
+output "cluster_certificate" {
+  description = "Certificate for EKS control plane."
+  value       = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+}
 
 output "cluster_endpoint" {
   description = "Endpoint for EKS control plane."
   value       = module.cluster.cluster_endpoint
+}
+
+output "cluster_mode" {
+  description = "Cluster mode (management or workload)."
+  value       = var.cluster_mode
 }
 
 # output "cluster_token" {
