@@ -43,7 +43,7 @@ module "cluster" {
 
 resource "aws_iam_policy" "argocd_policy" {
   name        = "argocd-policy"
-  description = "Policy for argocd"
+  description = "Policy for argocd to assume role"
   path        = "/"
   policy = jsonencode({
     Version = "2012-10-17",
