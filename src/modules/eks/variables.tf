@@ -37,10 +37,10 @@ variable "allowed_cidrs" {
 
 
 
-variable "karpenter_version" {
-  description = "Karpenter version"
-  type        = string
-}
+# variable "karpenter_version" {
+#   description = "Karpenter version"
+#   type        = string
+# }
 
 variable "enable_v1_permissions" {
   description = "Enable v1 permissions"

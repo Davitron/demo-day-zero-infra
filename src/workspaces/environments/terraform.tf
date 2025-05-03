@@ -40,7 +40,11 @@ provider "aws" {
 variable "env" {
   description = "name of the environment"
   type        = string
-  default     = "management"
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
 }
 
 
