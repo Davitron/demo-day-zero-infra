@@ -47,7 +47,7 @@ module "karpenter" {
   cluster_name                    = module.eks.cluster_name
   irsa_oidc_provider_arn          = module.eks.oidc_provider_arn
   enable_irsa                     = true
-  irsa_namespace_service_accounts = ["karpenter:${var.karpenter_serviceaccount_name}-*"]
+  irsa_namespace_service_accounts = ["karpenter:${var.karpenter_serviceaccount_name}"]
   enable_v1_permissions           = var.enable_v1_permissions
 
   create_instance_profile = true
