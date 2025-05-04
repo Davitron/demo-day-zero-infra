@@ -10,6 +10,7 @@ module "cluster" {
   access_entry = local.access_entry
 
   aws_account_id = "${data.aws_caller_identity.current.account_id}"
+  karpenter_serviceaccount_name = var.karpenter_serviceaccount_name
 
   cluster_addons = {
     coredns = {

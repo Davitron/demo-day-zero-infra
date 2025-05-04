@@ -52,6 +52,12 @@ variable "vpc_cidr" {
   type        = string
 }
 
+variable "karpenter_serviceaccount_name" {
+  
+  description = "Name of the Karpenter service account"
+  type        = string
+}
+
 
 # variable "doppler_admin_token" {
 #   type = string
