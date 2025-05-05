@@ -112,4 +112,42 @@ module "crossplane_iam" {
   role_policy_arns = {
     "admin" = "arn:aws:iam::aws:policy/AdministratorAccess"
   }
+
+  
+}
+
+data "aws_iam_policy_document" "cert_manager_route53" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "route53:GetChange",
+      "route53:ChangeResourceRecordSets",
+      "route53:ListHostedZonesByName",
+      "route53:ListResourceRecordSets"
+    ]
+    resources = ["*"]
+  }
+}
+
+
+module "certmanager" {
+  count       = var.env == "management" ? 1 : 0
+  source      = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version     = "5.34.0"
+
+  create_role = true
+  role_name   = "cert-manager-irsa-role-${var.env}"
+
+  oidc_providers = {
+    main = {
+      provider_arn              = module.cluster.oidc_provider_arn
+      namespace_service_accounts = ["cert-manager:*"]
+
+      irsa_policies = {
+        cert_manager_route53 = {
+          policy_document = data.aws_iam_policy_document.cert_manager_route53.json
+        }
+      }
+    }
+  }
 }
