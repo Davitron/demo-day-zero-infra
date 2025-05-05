@@ -137,7 +137,7 @@ module "certmanager" {
 
   create_role = true
   role_name   = "cert-manager-irsa-role-${var.env}"
-
+  assume_role_condition_test = "StringLike"
   oidc_providers = {
     main = {
       provider_arn              = module.cluster.oidc_provider_arn
@@ -150,4 +150,20 @@ module "certmanager" {
       }
     }
   }
+}
+
+resource "aws_iam_policy" "cert_manager_policy" {
+  count       = var.env == "management" ? 1 : 0
+  name        = "cert-manager-policy-${var.env}"
+  description = "Policy for cert-manager to assume role"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.cert_manager_route53.json
+  
+}
+
+resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
+  count      = var.env == "management" ? 1 : 0
+  name       = "cert-manager-policy-attachment-${var.env}"
+  roles      = [module.certmanager[0].iam_role_name]
+  policy_arn = aws_iam_policy.cert_manager_policy[0].arn
 }
