@@ -1,6 +1,9 @@
 locals {
   registered_environments = {
     "mgnt" = "management-eks"
+    "dev"  = "development-eks"
+    "stg"  = "staging-eks"
+    "prd"  = "production-eks"
    }
 
   access_entry = var.cluster_mode != "management" ? {

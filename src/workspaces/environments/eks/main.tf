@@ -88,7 +88,7 @@ module "argocd_access_iam" {
   create_role = true
   role_name   = "argocd-access-role-${var.env}"
   trusted_role_arns = [
-    module.argocd_management_iam[0].iam_role_arn,
+    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/argocd-management-role-management",
   ]
 
   create_instance_profile = false

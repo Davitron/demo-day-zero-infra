@@ -58,6 +58,11 @@ variable "karpenter_serviceaccount_name" {
   type        = string
 }
 
+variable "vpc_source" {
+  description = "VPC source"
+  type        = string
+}
+
 
 # variable "doppler_admin_token" {
 #   type = string

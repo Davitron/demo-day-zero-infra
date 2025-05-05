@@ -4,7 +4,7 @@ data "terraform_remote_state" "vpc" {
   config = {
     organization = "DevilOps"
     workspaces = {
-      name = "management-vpc"
+      name = var.vpc_source
     }
   }
 }
