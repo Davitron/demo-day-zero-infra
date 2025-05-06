@@ -53,7 +53,7 @@ variable "vpc_cidr" {
 }
 
 variable "karpenter_serviceaccount_name" {
-  
+
   description = "Name of the Karpenter service account"
   type        = string
 }

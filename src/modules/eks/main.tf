@@ -2,10 +2,10 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.36"
 
-  cluster_name                    = local.cluster_name
-  cluster_version                 = var.cluster_version
-  cluster_endpoint_public_access  = true
-  cluster_endpoint_private_access = true
+  cluster_name                         = local.cluster_name
+  cluster_version                      = var.cluster_version
+  cluster_endpoint_public_access       = true
+  cluster_endpoint_private_access      = true
   cluster_endpoint_public_access_cidrs = var.allowed_cidrs
 
   access_entries = var.access_entry
@@ -15,7 +15,7 @@ module "eks" {
   control_plane_subnet_ids = var.control_plane_subnet_ids
 
   enable_cluster_creator_admin_permissions = var.enable_cluster_creator_admin_permissions
-  cluster_addons = var.cluster_addons
+  cluster_addons                           = var.cluster_addons
 
   node_security_group_tags = {
     "kubernetes.io/cluster/${local.cluster_name}" = null
@@ -65,7 +65,7 @@ module "karpenter" {
     local.tags,
   )
 
-  depends_on = [ module.eks ]
+  depends_on = [module.eks]
 }
 
 

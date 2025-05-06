@@ -9,7 +9,7 @@ module "cluster" {
   enable_v1_permissions                    = true
   access_entry                             = local.access_entry
 
-  aws_account_id = "${data.aws_caller_identity.current.account_id}"
+  aws_account_id                = data.aws_caller_identity.current.account_id
   karpenter_serviceaccount_name = var.karpenter_serviceaccount_name
 
   cluster_addons = {
@@ -49,9 +49,9 @@ resource "aws_iam_policy" "argocd_policy" {
 
 
 module "argocd_management_iam" {
-  count       = var.cluster_mode == "management" ? 1 : 0 
+  count       = var.cluster_mode == "management" ? 1 : 0
   source      = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version                    = "~> 5.0"
+  version     = "~> 5.0"
   create_role = true
   role_name   = "argocd-management-role-${var.env}"
   oidc_providers = {
@@ -113,7 +113,7 @@ module "crossplane_iam" {
     "admin" = "arn:aws:iam::aws:policy/AdministratorAccess"
   }
 
-  
+
 }
 
 data "aws_iam_policy_document" "cert_manager_route53" {
@@ -131,16 +131,16 @@ data "aws_iam_policy_document" "cert_manager_route53" {
 
 
 module "certmanager" {
-  count       = var.env == "management" ? 1 : 0
-  source      = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version     = "5.34.0"
+  count   = var.env == "management" ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.34.0"
 
-  create_role = true
-  role_name   = "cert-manager-irsa-role-${var.env}"
+  create_role                = true
+  role_name                  = "cert-manager-irsa-role-${var.env}"
   assume_role_condition_test = "StringLike"
   oidc_providers = {
     main = {
-      provider_arn              = module.cluster.oidc_provider_arn
+      provider_arn               = module.cluster.oidc_provider_arn
       namespace_service_accounts = ["cert-manager:*"]
 
       irsa_policies = {
@@ -158,7 +158,7 @@ resource "aws_iam_policy" "cert_manager_policy" {
   description = "Policy for cert-manager to assume role"
   path        = "/"
   policy      = data.aws_iam_policy_document.cert_manager_route53.json
-  
+
 }
 
 resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {

@@ -45,7 +45,7 @@ variable "allowed_cidrs" {
 variable "enable_v1_permissions" {
   description = "Enable v1 permissions"
   type        = string
-  default = "false"
+  default     = "false"
 }
 
 variable "karpenter_serviceaccount_name" {
