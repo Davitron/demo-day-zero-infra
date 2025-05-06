@@ -8,7 +8,7 @@ locals {
 
   access_entry = var.cluster_mode != "management" ? {
     admin = {
-      principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/argocd-access-role-${var.env}"
+      principal_arn = module.argocd_access_iam[0].iam_role_arn
       policy_association = {
         policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
         access_scope = "cluster"

@@ -7,7 +7,7 @@ module "cluster" {
   control_plane_subnet_ids                 = data.terraform_remote_state.vpc.outputs.intra_subnets
   enable_cluster_creator_admin_permissions = true
   enable_v1_permissions                    = true
-  access_entry = local.access_entry
+  # access_entry                             = local.access_entry
 
   aws_account_id = "${data.aws_caller_identity.current.account_id}"
   karpenter_serviceaccount_name = var.karpenter_serviceaccount_name
