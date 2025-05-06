@@ -8,6 +8,8 @@ module "eks" {
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access_cidrs = var.allowed_cidrs
 
+  access_entries = var.access_entry
+
   vpc_id                   = var.vpc_id
   subnet_ids               = var.node_subnets
   control_plane_subnet_ids = var.control_plane_subnet_ids
