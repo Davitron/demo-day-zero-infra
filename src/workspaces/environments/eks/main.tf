@@ -123,7 +123,8 @@ data "aws_iam_policy_document" "cert_manager_route53" {
       "route53:GetChange",
       "route53:ChangeResourceRecordSets",
       "route53:ListHostedZonesByName",
-      "route53:ListResourceRecordSets"
+      "route53:ListResourceRecordSets",
+      "route53:ListHostedZones"
     ]
     resources = ["*"]
   }
@@ -166,4 +167,27 @@ resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
   name       = "cert-manager-policy-attachment-${var.env}"
   roles      = [module.certmanager[0].iam_role_name]
   policy_arn = aws_iam_policy.cert_manager_policy[0].arn
+}
+
+module "external_dns" {
+  count   = var.env == "management" ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.34.0"
+
+  create_role                = true
+  role_name                  = "external-dns"
+  assume_role_condition_test = "StringLike"
+  oidc_providers = {
+    main = {
+      provider_arn               = module.cluster.oidc_provider_arn
+      namespace_service_accounts = ["external-dns:*"]
+    }
+  }
+}
+
+resource "aws_iam_policy_attachment" "external_dns_policy_attachment" {
+  count      = var.env == "management" ? 1 : 0
+  name       = "external-dns-policy-attachment"
+  roles      = [module.external_dns[0].iam_role_name]
+  policy_arn = aws_iam_policy.cert_manager_policy[0].arn # attach the same permissions as cert-manager since similar
 }
