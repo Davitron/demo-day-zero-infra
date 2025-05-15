@@ -132,7 +132,7 @@ data "aws_iam_policy_document" "cert_manager_route53" {
 
 
 module "certmanager" {
-  count   = var.env == "management" ? 1 : 0
+  # count   = var.env == "management" ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.34.0"
 
@@ -154,7 +154,7 @@ module "certmanager" {
 }
 
 resource "aws_iam_policy" "cert_manager_policy" {
-  count       = var.env == "management" ? 1 : 0
+  # count       = var.env == "management" ? 1 : 0
   name        = "cert-manager-policy-${var.env}"
   description = "Policy for cert-manager to assume role"
   path        = "/"
@@ -163,19 +163,19 @@ resource "aws_iam_policy" "cert_manager_policy" {
 }
 
 resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
-  count      = var.env == "management" ? 1 : 0
+  # count      = var.env == "management" ? 1 : 0
   name       = "cert-manager-policy-attachment-${var.env}"
-  roles      = [module.certmanager[0].iam_role_name]
-  policy_arn = aws_iam_policy.cert_manager_policy[0].arn
+  roles      = [module.certmanager.iam_role_name]
+  policy_arn = aws_iam_policy.cert_manager_policy.arn
 }
 
 module "external_dns" {
-  count   = var.env == "management" ? 1 : 0
+  # count   = var.env == "management" ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.34.0"
 
   create_role                = true
-  role_name                  = "external-dns"
+  role_name                  = "external-dns-role-${var.env}"
   assume_role_condition_test = "StringLike"
   oidc_providers = {
     main = {
@@ -186,8 +186,8 @@ module "external_dns" {
 }
 
 resource "aws_iam_policy_attachment" "external_dns_policy_attachment" {
-  count      = var.env == "management" ? 1 : 0
-  name       = "external-dns-policy-attachment"
-  roles      = [module.external_dns[0].iam_role_name]
-  policy_arn = aws_iam_policy.cert_manager_policy[0].arn # attach the same permissions as cert-manager since similar
+  # count      = var.env == "management" ? 1 : 0
+  name       = "external-dns-policy-attachment-${var.env}"
+  roles      = [module.external_dns.iam_role_name]
+  policy_arn = aws_iam_policy.cert_manager_policy.arn # attach the same permissions as cert-manager since similar
 }
