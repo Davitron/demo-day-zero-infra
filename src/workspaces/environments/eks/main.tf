@@ -143,31 +143,26 @@ module "certmanager" {
     main = {
       provider_arn               = module.cluster.oidc_provider_arn
       namespace_service_accounts = ["cert-manager:*"]
-
-      irsa_policies = {
-        cert_manager_route53 = {
-          policy_document = data.aws_iam_policy_document.cert_manager_route53.json
-        }
-      }
     }
   }
+  attach_cert_manager_policy = true
 }
 
-resource "aws_iam_policy" "cert_manager_policy" {
-  # count       = var.env == "management" ? 1 : 0
-  name        = "cert-manager-policy-${var.env}"
-  description = "Policy for cert-manager to assume role"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.cert_manager_route53.json
+# resource "aws_iam_policy" "cert_manager_policy" {
+#   # count       = var.env == "management" ? 1 : 0
+#   name        = "cert-manager-policy-${var.env}"
+#   description = "Policy for cert-manager to assume role"
+#   path        = "/"
+#   policy      = data.aws_iam_policy_document.cert_manager_route53.json
 
-}
+# }
 
-resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
-  # count      = var.env == "management" ? 1 : 0
-  name       = "cert-manager-policy-attachment-${var.env}"
-  roles      = [module.certmanager.iam_role_name]
-  policy_arn = aws_iam_policy.cert_manager_policy.arn
-}
+# resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
+#   # count      = var.env == "management" ? 1 : 0
+#   name       = "cert-manager-policy-attachment-${var.env}"
+#   roles      = [module.certmanager.iam_role_name]
+#   policy_arn = aws_iam_policy.cert_manager_policy.arn
+# }
 
 module "external_dns" {
   # count   = var.env == "management" ? 1 : 0
@@ -183,11 +178,13 @@ module "external_dns" {
       namespace_service_accounts = ["external-dns:*"]
     }
   }
+
+  attach_external_dns_policy = true
 }
 
-resource "aws_iam_policy_attachment" "external_dns_policy_attachment" {
-  # count      = var.env == "management" ? 1 : 0
-  name       = "external-dns-policy-attachment-${var.env}"
-  roles      = [module.external_dns.iam_role_name]
-  policy_arn = aws_iam_policy.cert_manager_policy.arn # attach the same permissions as cert-manager since similar
-}
+# resource "aws_iam_policy_attachment" "external_dns_policy_attachment" {
+#   # count      = var.env == "management" ? 1 : 0
+#   name       = "external-dns-policy-attachment-${var.env}"
+#   roles      = [module.external_dns.iam_role_name]
+#   policy_arn = aws_iam_policy.cert_manager_policy.arn # attach the same permissions as cert-manager since similar
+# }
