@@ -33,11 +33,6 @@ output "cluster_mode" {
   value       = var.cluster_mode
 }
 
-# output "cluster_token" {
-#   description = "Token for EKS control plane."
-#   value       = data.aws_eks_cluster_auth.cluster.token
-# }
-
 output "karpenter_iam_role" {
   description = "IAM role for Karpenter."
   value       = module.cluster.karpenter_iam_role

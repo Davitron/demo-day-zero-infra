@@ -9,14 +9,5 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-# data "aws_eks_cluster" "cluster" {
-#   name  = var.env
-# }
-
-# data "aws_eks_cluster_auth" "cluster" {
-#   name  = var.env
-# }
-
-
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}

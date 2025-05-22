@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------------------
+# EKS Cluster Module
+# ------------------------------------------------------------------------------
+
 module "cluster" {
   source                                   = "../../../modules/eks"
   env                                      = var.env
@@ -28,6 +32,9 @@ module "cluster" {
   }
 }
 
+# ------------------------------------------------------------------------------
+# ArgoCD IAM Roles and Policies
+# ------------------------------------------------------------------------------
 
 resource "aws_iam_policy" "argocd_policy" {
   name        = "argocd-policy-${var.env}"
@@ -46,7 +53,6 @@ resource "aws_iam_policy" "argocd_policy" {
     ]
   })
 }
-
 
 module "argocd_management_iam" {
   count       = var.cluster_mode == "management" ? 1 : 0
@@ -78,7 +84,6 @@ resource "aws_iam_policy_attachment" "argocd_policy_attachment" {
   name       = "argocd-policy-attachment"
   roles      = [module.argocd_management_iam[0].iam_role_name]
   policy_arn = aws_iam_policy.argocd_policy.arn
-
 }
 
 module "argocd_access_iam" {
@@ -97,6 +102,10 @@ module "argocd_access_iam" {
 }
 
 
+# ------------------------------------------------------------------------------
+# Crossplane IAM Role and Policies
+# ------------------------------------------------------------------------------
+
 module "crossplane_iam" {
   source                     = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version                    = "~> 5.0"
@@ -112,9 +121,11 @@ module "crossplane_iam" {
   role_policy_arns = {
     "admin" = "arn:aws:iam::aws:policy/AdministratorAccess"
   }
-
-
 }
+
+# ------------------------------------------------------------------------------
+# Cert-Manager IAM Role and Policies
+# ------------------------------------------------------------------------------
 
 data "aws_iam_policy_document" "cert_manager_route53" {
   statement {
@@ -129,7 +140,6 @@ data "aws_iam_policy_document" "cert_manager_route53" {
     resources = ["*"]
   }
 }
-
 
 module "certmanager" {
   # count   = var.env == "management" ? 1 : 0
@@ -148,21 +158,9 @@ module "certmanager" {
   attach_cert_manager_policy = true
 }
 
-# resource "aws_iam_policy" "cert_manager_policy" {
-#   # count       = var.env == "management" ? 1 : 0
-#   name        = "cert-manager-policy-${var.env}"
-#   description = "Policy for cert-manager to assume role"
-#   path        = "/"
-#   policy      = data.aws_iam_policy_document.cert_manager_route53.json
-
-# }
-
-# resource "aws_iam_policy_attachment" "cert_manager_policy_attachment" {
-#   # count      = var.env == "management" ? 1 : 0
-#   name       = "cert-manager-policy-attachment-${var.env}"
-#   roles      = [module.certmanager.iam_role_name]
-#   policy_arn = aws_iam_policy.cert_manager_policy.arn
-# }
+# ------------------------------------------------------------------------------
+# External DNS IAM Role and Policies
+# ------------------------------------------------------------------------------
 
 module "external_dns" {
   # count   = var.env == "management" ? 1 : 0
@@ -182,9 +180,96 @@ module "external_dns" {
   attach_external_dns_policy = true
 }
 
-# resource "aws_iam_policy_attachment" "external_dns_policy_attachment" {
-#   # count      = var.env == "management" ? 1 : 0
-#   name       = "external-dns-policy-attachment-${var.env}"
-#   roles      = [module.external_dns.iam_role_name]
-#   policy_arn = aws_iam_policy.cert_manager_policy.arn # attach the same permissions as cert-manager since similar
-# }
+
+# ------------------------------------------------------------------------------
+# Vault AWS Resources
+# KMS Key and Alias
+# IAM Policy for Vault
+# IAM Role for Vault
+# ------------------------------------------------------------------------------
+
+resource "aws_s3_bucket" "vault_seal" {
+  count      = var.cluster_mode == "management" ? 1 : 0
+  bucket = "vault-seal-mgmt" 
+  force_destroy = true
+}
+
+
+resource "aws_kms_key" "vault" {
+  count      = var.cluster_mode == "management" ? 1 : 0
+  description             = "KMS key for Vault auto-unseal"
+  deletion_window_in_days = 10
+  enable_key_rotation     = true
+}
+
+resource "aws_kms_alias" "vault" {
+  count      = var.cluster_mode == "management" ? 1 : 0
+  name          = "alias/vault-auto-unseal"
+  target_key_id = aws_kms_key.vault[0].key_id
+}
+
+
+data "aws_iam_policy_document" "vault" {
+  count      = var.cluster_mode == "management" ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [aws_kms_key.vault[0].arn]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      "${aws_s3_bucket.vault_seal[0].arn}/*"
+    ]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      aws_s3_bucket.vault_seal[0].arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "vault" {
+  count      = var.cluster_mode == "management" ? 1 : 0
+  name        = "vault-policy"
+  description = "Policy for vault to assume role"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.vault[0].json
+}
+
+
+module "vault" {
+  count   = var.env == "management" ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.34.0"
+
+  create_role                = true
+  role_name                  = "vault-kms-role"
+  assume_role_condition_test = "StringLike"
+  oidc_providers = {
+    main = {
+      provider_arn               = module.cluster.oidc_provider_arn
+      namespace_service_accounts = ["vault:*"]
+    }
+  }
+
+  role_policy_arns = {
+    "main" = aws_iam_policy.vault[0].arn
+  }
+  
+}
