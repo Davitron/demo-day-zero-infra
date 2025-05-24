@@ -29,6 +29,11 @@ module "cluster" {
       resolve_conflicts = "OVERWRITE"
       addon_version     = "v1.19.2-eksbuild.5"
     }
+
+    aws-ebs-csi-driver = {
+      resolve_conflicts = "OVERWRITE"
+      addon_version     = "v1.43.0-eksbuild.1"
+    }
   }
 }
 
