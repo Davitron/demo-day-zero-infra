@@ -1,3 +1,13 @@
+output "account_id" {
+  description = "AWS account ID."
+  value       = data.aws_caller_identity.current.account_id
+}
+
+output "region" {
+  description = "AWS region."
+  value       = data.aws_region.current.name
+}
+
 output "cluster_id" {
   value = module.cluster.cluster_id
 }
@@ -46,4 +56,26 @@ output "argocd_access_role" {
 output "registered_environments" {
   description = "Registered environments."
   value       = local.registered_environments
+}
+
+output "crossplane_iam_role" {
+  description = "IAM role for Crossplane."
+  value       = module.crossplane_iam.iam_role_arn
+}
+
+output "certmanager_iam_role" {
+  description = "IAM role for Cert Manager."
+  value       = module.certmanager.iam_role_arn
+}
+
+
+output "external_dns_iam_role" {
+  description = "IAM role for External DNS."
+  value       = module.external_dns.iam_role_arn
+}
+
+output "vault_iam_role" {
+
+  description = "IAM role for Vault."
+  value       = var.cluster_mode == "management" ? module.vault[0].iam_role_arn : null
 }
